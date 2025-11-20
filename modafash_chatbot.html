@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ModaFash S.L. - Chatbot</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+    }
+    header {
+      background: #000;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+      font-size: 24px;
+      letter-spacing: 1px;
+    }
+    main {
+      padding: 40px;
+      text-align: center;
+    }
+    #mf-chatbot {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 320px;
+      height: 420px;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      font-family: Arial;
+    }
+    #mf-chat-header {
+      background: #000;
+      color: #fff;
+      padding: 15px;
+      border-radius: 20px 20px 0 0;
+      font-weight: bold;
+    }
+    #mf-chat-content {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      font-size: 14px;
+    }
+    #mf-input {
+      border: none;
+      border-top: 1px solid #ccc;
+      padding: 10px;
+      outline: none;
+    }
+    .bot { margin: 8px 0; background:#f1f1f1; padding:8px; border-radius:8px; display:inline-block; max-width:85%; }
+    .user { margin: 8px 0; background:#d1ffd6; padding:8px; border-radius:8px; display:inline-block; max-width:85%; float:right; clear:both; }
+    .quick-btn { margin:6px 6px 0 0; padding:6px 10px; background:#000; color:#fff; border-radius:12px; cursor:pointer; display:inline-block; font-size:13px; }
+  </style>
+</head>
+<body>
+
+<header>ModaFash S.L. – Sudadera NeoReWin</header>
+
+<main>
+  <h2>Asistente virtual</h2>
+  <p>Habla con nuestro chatbot para recibir recomendaciones personalizadas.</p>
+  <div style="margin-top:18px;">
+    <span class="quick-btn" onclick="sendQuick('¿Qué tallas hay?')">Tallas</span>
+    <span class="quick-btn" onclick="sendQuick('¿Qué colores hay?')">Colores</span>
+    <span class="quick-btn" onclick="sendQuick('Precio Black Friday')">Precio</span>
+  </div>
+</main>
+
+<div id="mf-chatbot">
+  <div id="mf-chat-header">ModaFash Assistant</div>
+  <div id="mf-chat-content"></div>
+  <input id="mf-input" type="text" placeholder="Escribe aquí..." />
+</div>
+
+<script>
+  const chat = document.getElementById('mf-chat-content');
+  const input = document.getElementById('mf-input');
+
+  function appendMessage(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function bot(text) {
+    appendMessage('<div class="bot"><strong>Bot:</strong> ' + text + '</div>');
+  }
+
+  function user(text) {
+    appendMessage('<div class="user"><strong>Tú:</strong> ' + text + '</div>');
+  }
+
+  function sendQuick(text) {
+    input.value = text;
+    // simulate enter
+    const e = new KeyboardEvent('keydown', {key: 'Enter'});
+    input.dispatchEvent(e);
+  }
+
+  bot("¡Hola! 👋 Soy el asistente de ModaFash. ¿Buscas información sobre la sudadera NeoReWin?");
+
+  input.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && input.value.trim() !== "") {
+      let msg = input.value.trim();
+      user(msg);
+      input.value = "";
+
+      // Simple rule-based flow + examples of extracting numeric height
+      const lower = msg.toLowerCase();
+
+      if (lower.includes("talla") || lower.match(/xs|s\b|m\b|l\b|xl\b/)) {
+        bot("Está disponible en XS, S, M, L y XL. Dime tu altura y si prefieres ajuste entallado, regular o holgado y te recomiendo una talla.");
+      }
+      else if (lower.includes("alt") || lower.match(/\d+\s?m|\d+\s?cm/)) {
+        // try to parse height in cm or meters
+        let height = null;
+        const mMatch = msg.match(/(\d+[\.,]?\d*)\s?m/);
+        const cmMatch = msg.match(/(\d+)\s?cm/);
+        if (mMatch) { height = parseFloat(mMatch[1]) * 100; }
+        else if (cmMatch) { height = parseInt(cmMatch[1]); }
+        if (height) {
+          let talla = 'M'; // default recommendation
+          if (height < 165) talla = 'S';
+          else if (height >= 165 && height < 175) talla = 'M';
+          else if (height >= 175 && height < 185) talla = 'L';
+          else if (height >= 185) talla = 'XL';
+          bot('Con ' + height + ' cm, te recomendamos talla ' + talla + '. ¿Quieres que la añada al carrito?');
+        } else {
+          bot('No he entendido la altura. Indícala en cm o en metros (ej. 1.78 m o 178 cm).');
+        }
+      }
+      else if (lower.includes("color")) {
+        bot("Los colores disponibles son: Negro Carbón, Verde Bosque y Azul Profundo. ¿Quieres ver una imagen de alguno?"); 
+      }
+      else if (lower.includes("precio") || lower.includes("black friday") || lower.includes("oferta")) {
+        bot("Actualmente está en oferta Black Friday con hasta 50% de descuento. ¿Quieres aplicar el descuento en tu carrito?"); 
+      }
+      else if (lower.includes("comprar") || lower.includes("carrito") || lower.includes("añadir")) {
+        bot("¡Perfecto! He añadido la sudadera al carrito (simulado). Ve a /carrito para revisar tu pedido."); 
+      }
+      else if (lower.includes('ayuda') || lower.includes('información')) {
+        bot('Puedo ayudarte con tallas, colores, precio, materiales y añadir la sudadera al carrito. Usa los botones rápidos si quieres.');
+      }
+      else {
+        bot("Puedo ayudarte con tallas, colores, precio o añadir la sudadera al carrito. ¿Qué necesitas?"); 
+      }
+    }
+  });
+</script>
+
+</body>
+</html>
